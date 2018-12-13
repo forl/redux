@@ -88,6 +88,7 @@ export default function createStore<
       throw new Error('Expected the enhancer to be a function.')
     }
 
+    // 按照这种增强方式，多个 enhancer 是可以通过 compose() 合并的
     return enhancer(createStore)(
       reducer,
       preloadedState as PreloadedState<S>
