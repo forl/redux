@@ -5,6 +5,9 @@ import {
   ActionCreatorsMapObject
 } from './types/actions'
 
+/**
+ * 调用 actionCreator 生成 action，再调用 dispatch 派发 action
+ */
 function bindActionCreator<A extends AnyAction = AnyAction>(
   actionCreator: ActionCreator<A>,
   dispatch: Dispatch
