@@ -195,6 +195,7 @@ export default function combineReducers(reducers: ReducersMapObject) {
       const key = finalReducerKeys[i]
       const reducer = finalReducers[key]
       const previousStateForKey = state[key]
+      // 每一个子 reducer 都要被调用
       const nextStateForKey = reducer(previousStateForKey, action)
       if (typeof nextStateForKey === 'undefined') {
         const errorMessage = getUndefinedStateErrorMessage(key, action)
