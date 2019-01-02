@@ -88,6 +88,7 @@ export default function createStore<
       throw new Error('Expected the enhancer to be a function.')
     }
 
+    // enhancer 的作用是： createStore => enhancedCreateTore
     // 按照这种增强方式，多个 enhancer 是可以通过 compose() 合并的
     return enhancer(createStore)(
       reducer,
@@ -264,6 +265,8 @@ export default function createStore<
    * You might need this if your app implements code splitting and you want to
    * load some of the reducers dynamically. You might also need this if you
    * implement a hot reloading mechanism for Redux.
+   * 
+   * 整体替换 reducer，这一特性可用于 reducer 代码分隔 + 按需加载
    *
    * @param nextReducer The reducer for the store to use instead.
    * @returns The same store instance with a new reducer in place.
