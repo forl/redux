@@ -122,8 +122,11 @@ function assertReducerShape(reducers: ReducersMapObject) {
  *   initial state if the state passed to them was undefined, and the current
  *   state for any unrecognized action.
  *
- * @returns A reducer function that invokes every reducer inside the passed
- *   object, and builds a state object with the same shape.
+ * reducer 从来不会返回 undefined。如果传入的 state 是 undefined，则应该返回其初始值，如果
+ * 传入的 action 不能识别，则返回当前 state
+ *
+ * @returns {Function} 返回一个函数，该函数会在内部调用传入对象中的每一个reducer，并构建
+ * 一个与传入对象形状相同的 state 对象
  */
 export default function combineReducers<S>(
   reducers: ReducersMapObject<S, any>
@@ -169,6 +172,10 @@ export default function combineReducers(reducers: ReducersMapObject) {
     shapeAssertionError = e
   }
 
+  /**
+   * 通过 combination 的实现可以看出，总reducer会调用每一个子reducer，每一个子 reducer
+   * 都会接收同样的 action，并负责更新对应的state子树
+   */
   return function combination(
     state: StateFromReducersMapObject<typeof reducers> = {},
     action: AnyAction
@@ -202,10 +209,18 @@ export default function combineReducers(reducers: ReducersMapObject) {
         throw new Error(errorMessage)
       }
       nextState[key] = nextStateForKey
+      // 对每一个 state 子树变化前后进行浅比较
       hasChanged = hasChanged || nextStateForKey !== previousStateForKey
     }
     hasChanged =
       hasChanged || finalReducerKeys.length !== Object.keys(state).length
+
+    /**
+     * 注意：
+     * 1. 如果 state 树的每一颗子树都没有改变，则返回当前 state;
+     * 2. nextState 是一个普通的JS对象，如果需要引入 immutable.js，则需要改造
+     * combineReducers，让 combination 返回一个 immutable 对象。
+     */
     return hasChanged ? nextState : state
   }
 }

@@ -14,12 +14,11 @@ import ActionTypes from './utils/actionTypes'
 import isPlainObject from './utils/isPlainObject'
 
 /**
- * Creates a Redux store that holds the state tree.
- * The only way to change the data in the store is to call `dispatch()` on it.
+ * 创建一个 Redux store，它维护着整个 state 树，改变 store 中的数据的唯一方法是调用它的
+ * `dispatch()` 方法。
  *
- * There should only be a single store in your app. To specify how different
- * parts of the state tree respond to actions, you may combine several reducers
- * into a single reducer function by using `combineReducers`.
+ * 在你的 app 中应该只存在一个单一的 store。为了将 state 树拆分成不同部分分别响应 action,
+ * 你可以使用 `combineReducers` 将多个 reducer 合并成一个 reducer。
  *
  * @param reducer A function that returns the next state tree, given
  * the current state tree and the action to handle.
@@ -120,7 +119,7 @@ export default function createStore<
   }
 
   /**
-   * Reads the state tree managed by the store.
+   * 读取由 store 管理的状态树
    *
    * @returns The current state tree of your application.
    */
@@ -137,24 +136,18 @@ export default function createStore<
   }
 
   /**
-   * Adds a change listener. It will be called any time an action is dispatched,
-   * and some part of the state tree may potentially have changed. You may then
-   * call `getState()` to read the current state tree inside the callback.
+   * 添加变化监听器。监听器会在每一次发布 action 后被调用（同步的调用），此时状态树中的某些部
+   * 分可能已发生变化。你可以在监听回调中调用 store 的 `getState()` 来获取最新的状态。
    *
-   * You may call `dispatch()` from a change listener, with the following
-   * caveats:
+   * 你可以在监听回调中调用 `dispatch()`，但要注意一下几点：
    *
-   * 1. The subscriptions are snapshotted just before every `dispatch()` call.
-   * If you subscribe or unsubscribe while the listeners are being invoked, this
-   * will not have any effect on the `dispatch()` that is currently in progress.
-   * However, the next `dispatch()` call, whether nested or not, will use a more
-   * recent snapshot of the subscription list.
+   * 1. 在每一次调用 `dispatch()` 时，`dispatch()`会对当前订阅列表做一个快照。如果你在这
+   * 些监听函数被触发的阶段去订阅或者取消订阅，将不会影响当前进行中的 `dispatch()`。但是，
+   * 下一次调用`dispatch()`则会使用最新的订阅列表快照。
    *
-   * 2. The listener should not expect to see all state changes, as the state
-   * might have been updated multiple times during a nested `dispatch()` before
-   * the listener is called. It is, however, guaranteed that all subscribers
-   * registered before the `dispatch()` started will be called with the latest
-   * state by the time it exits.
+   * 2. 监听器不应该期待它能看到全部的状态变化，因为在监听器被调用之前，状态可能因为嵌套的
+   * `dispatch()` 发生了多次变化。这样可以保证的是：所有在`dispatch()`函数开始之前注册的
+   * 监听器都能在`dispatch()`退出之前以最新状态被调用。
    *
    * @param listener A callback to be invoked on every dispatch.
    * @returns A function to remove this change listener.
@@ -200,18 +193,16 @@ export default function createStore<
   }
 
   /**
-   * Dispatches an action. It is the only way to trigger a state change.
+   * 发布一个 action。这是唯一触发状态改变的方法。
    *
-   * The `reducer` function, used to create the store, will be called with the
-   * current state tree and the given `action`. Its return value will
-   * be considered the **next** state of the tree, and the change listeners
-   * will be notified.
+   * 在创建 store 时使用的 `reducer` 方法，将会在此时被调用，传入的参数是当前的 state 树
+   * 以及给定的 action。reducer 被调用后返回的值就是新的状态树。得到新的状态树之后，所有监
+   * 听器会被调用。
    *
-   * The base implementation only supports plain object actions. If you want to
-   * dispatch a Promise, an Observable, a thunk, or something else, you need to
-   * wrap your store creating function into the corresponding middleware. For
-   * example, see the documentation for the `redux-thunk` package. Even the
-   * middleware will eventually dispatch plain object actions using this method.
+   * Redux 基础实现只支持 plain 对象的 action。如果你想发布其他类型的action，比如
+   * Promise，Observable，Observable等等，则你需要使用对应的中间件来包装store的创建函数。
+   * 比如 `redux-thunk` 就是这样的中间件。中间件最终还是会调用此函数来发布 plain 对象的
+   * action。
    *
    * @param action A plain object representing “what changed”. It is
    * a good idea to keep actions serializable so you can record and replay user
@@ -221,8 +212,8 @@ export default function createStore<
    *
    * @returns For convenience, the same action object you dispatched.
    *
-   * Note that, if you use a custom middleware, it may wrap `dispatch()` to
-   * return something else (for example, a Promise you can await).
+   * 需要注意，如果你使用了自定义中间件，它可能会包装 `dispatch()` 方法，并返回其它的内容，
+   * 比如返回一个 Promise。
    */
   function dispatch(action: A) {
     if (!isPlainObject(action)) {
@@ -245,28 +236,28 @@ export default function createStore<
 
     try {
       isDispatching = true
+      // 注意:
+      // 1. 只要是合法的action，都会无条件调用 reducer；
+      // 2. 直接使用 reducer 返回的值覆盖掉了当前 state，不关心 state 树里的真实变化情况。
       currentState = currentReducer(currentState, action)
     } finally {
       isDispatching = false
     }
 
+    // 注意，无论 state 树如何变化，所有已注册的 listener 都会无条件被调用
+    // 即，只要调用 `dispatch()`，就会触发监听器
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
-      listener()
+      listener() // 注意并未给 listener 传递参数
     }
 
     return action
   }
 
   /**
-   * Replaces the reducer currently used by the store to calculate the state.
-   *
-   * You might need this if your app implements code splitting and you want to
-   * load some of the reducers dynamically. You might also need this if you
-   * implement a hot reloading mechanism for Redux.
-   * 
-   * 整体替换 reducer，这一特性可用于 reducer 代码分隔 + 按需加载
+   * 整体替换 reducer，这一特性可用于 reducer 代码分隔并按需加载。也可以利用此特性来实现
+   * Redux 热加载
    *
    * @param nextReducer The reducer for the store to use instead.
    * @returns The same store instance with a new reducer in place.
