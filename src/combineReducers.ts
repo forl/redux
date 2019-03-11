@@ -121,6 +121,8 @@ function assertReducerShape(reducers: ReducersMapObject) {
  *   return undefined for any action. Instead, they should return their
  *   initial state if the state passed to them was undefined, and the current
  *   state for any unrecognized action.
+ * @param {Object} reducers 是一个对象，其属性值都是需要被 combine 的 reducer 函数。
+ * One handy way to obtain it is to use ES6 `import * as reducers` syntax.
  *
  * reducer 从来不会返回 undefined。如果传入的 state 是 undefined，则应该返回其初始值，如果
  * 传入的 action 不能识别，则返回当前 state
