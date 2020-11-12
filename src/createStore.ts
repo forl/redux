@@ -87,7 +87,7 @@ export default function createStore<
       throw new Error('Expected the enhancer to be a function.')
     }
 
-    // enhancer 的作用是： createStore => enhancedCreateTore
+    // enhancer 的作用是： createStore => enhancedCreateStore
     // 按照这种增强方式，多个 enhancer 是可以通过 compose() 合并的
     return enhancer(createStore)(
       reducer,
